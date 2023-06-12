@@ -46,8 +46,8 @@ function App() {
       .catch(() => {
         setInfoTooltipIcon(failure);
         setInfoTooltipText("Что-то пошло не так! Попробуйте ещё раз.");
+        handleInfoTooltip();
       })
-      .finally(handleInfoTooltip())
   }
 
   function onRegister(email, password) {
@@ -61,10 +61,10 @@ function App() {
         setInfoTooltipIcon(failure);
         setInfoTooltipText("Что-то пошло не так! Попробуйте ещё раз.");
       })
-      .finally(handleInfoTooltip())
+      .finally(handleInfoTooltip)
   }
 
-  function CheckTocken() {
+  function checkTocken() {
     const jwt = localStorage.getItem("jwt");
     if (jwt) {
       auth.getToken(jwt)
@@ -75,14 +75,12 @@ function App() {
             setEmail(res.data.email);
           }
         })
-        .catch((err) => {
-          console.error(err);
-        })
+        .catch(console.error)
     }
   }
 
   useEffect(() => {
-    CheckTocken()
+    checkTocken()
   }, [])
 
   function onSignOut() {
@@ -97,9 +95,7 @@ function App() {
         setCurrentUser(userData)
         setCards(cards)
       })
-      .catch((err) => {
-        console.log(`Произошла ошибка ${err}`)
-      })
+      .catch(console.error)
   }, [])
 
   function handleCardLike(card) {
@@ -110,17 +106,13 @@ function App() {
         .then((newCard) => {
           setCards((state) => state.map((c) => (c._id === card._id ? newCard : c)));
         })
-        .catch((err) => {
-          console.log(`Произошла ошибка ${err}`)
-        });
+        .catch(console.error)
     } else {
       api.deleteLike(card._id)
         .then((newCard) => {
           setCards((state) => state.map((c) => (c._id === card._id ? newCard : c)));
         })
-        .catch((err) => {
-          console.log(`Произошла ошибка ${err}`)
-        });
+        .catch(console.error)
     }
   }
 
@@ -129,9 +121,7 @@ function App() {
       .then(() => {
         setCards((item) => item.filter((c) => c._id !== card._id && c));
       })
-      .catch((err) => {
-        console.log(`Произошла ошибка ${err}`)
-      });
+      .catch(console.error)
   }
 
   function handleUpdateUser(profileData) {
@@ -140,9 +130,7 @@ function App() {
         setCurrentUser(card);
         closeAllPopups();
       })
-      .catch((err) => {
-        console.log(`Произошла ошибка ${err}`)
-      })
+      .catch(console.error)
   }
 
   function handleUpdateAvatar(avatarLink) {
@@ -151,9 +139,7 @@ function App() {
         setCurrentUser(avatarUrl);
         closeAllPopups();
       })
-      .catch((err) => {
-        console.log(`Произошла ошибка ${err}`)
-      })
+      .catch(console.error)
   }
 
   function handleAddPlaceSubmit({ name, link }) {
@@ -162,9 +148,7 @@ function App() {
         setCards([newCard, ...cards]);
         closeAllPopups();
       })
-      .catch((err) => {
-        console.log(`Произошла ошибка ${err}`)
-      })
+      .catch(console.error)
   }
 
   function handleEditProfileClick() {
@@ -194,6 +178,22 @@ function App() {
     setIsInfoTooltipPopupOpen(false);
     setSelectedCard(null);
   }
+
+  const isOpen = isEditAvatarPopupOpen || isEditProfilePopupOpen || isAddPlacePopupOpen || selectedCard
+
+  useEffect(() => {
+    function closeByEscape(evt) {
+      if (evt.key === 'Escape') {
+        closeAllPopups();
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('keydown', closeByEscape);
+      return () => {
+        document.removeEventListener('keydown', closeByEscape);
+      }
+    }
+  }, [isOpen])
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
